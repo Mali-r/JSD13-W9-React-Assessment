@@ -1,13 +1,18 @@
 import React from "react";
+import { useState } from "react";
 import Home from "./01_Home";
+import users from "../mock-data/user";
 
 export default function UserSection() {
+
+  const [userList] = useState(users);
+ 
   return (
     <div>
       <Home />
       <div className="flex my-4 justify-center">
-        <div className="w-[80%]">
-          <table className="table table-xs table-pin-row text-center">
+        <div className="overflow-x-auto h-96 w-[80%]">
+          <table className="table table-xs table-pin-col text-center">
             <thead>
               <tr>
                 <td>Name</td>
@@ -16,11 +21,13 @@ export default function UserSection() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Maliwan</td>
-                <td>R.</td>
-                <td>Software Dev</td>
+              {userList.map((user) => (
+                <tr key={user.id}>
+                <td>{user.name}</td>
+                <td>{user.lastname}</td>
+                <td>{user.position}</td>
               </tr>
+              ))}
             </tbody>
           </table>
         </div>

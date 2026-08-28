@@ -1,12 +1,42 @@
 import React from "react";
 import { useState } from "react";
 import Home from "./01_Home";
+import dataUsers from "../mock-data/user";
 
 export default function AdminSection() {
-  const [message, setMessage] = useState("");
+  const [userList, setUserList] = useState(dataUsers);
+  const [name, setName] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [position, setPosition] = useState("");
 
-  const handleSubmit = () => {
-    alert(`User sent: ${name} ${lastname}`);
+  const handleSave = () => {
+    if (!name || !lastname || !position) {
+      alert("Please Fill in every field.");
+      return;
+    } else {
+      alert(`Added: ${name} ${lastname}.`);
+    }
+
+    // Add user
+    const newUser = {
+      id: Date.now().toString(), // set unique id for data
+      name,
+      lastname,
+      position,
+    };
+
+    // Add to dataUsers
+    setUserList([...userList, newUser]);
+
+    // reset form
+    setName("");
+    setLastname("");
+    setPosition("");
+  };
+
+  // Delete
+  const handleDelete = (id) => {
+    setUserList(userList.filter((user) => user.id != id));
   };
 
   return (
@@ -16,18 +46,31 @@ export default function AdminSection() {
         <div className="flex flex-col mx-8 my-4 items-center">
           <label className="font-semibold my-2">Create User Here</label>
           <div className="flex flex-row gap-4 items-center">
-            <input type="text" placeholder="Name" className="input input-xs" />
+            <input
+              type="text"
+              placeholder="Name"
+              className="input input-xs"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
             <input
               type="text"
               placeholder="Last Name"
               className="input input-xs"
+              value={lastname}
+              onChange={(e) => setLastname(e.target.value)}
             />
             <input
               type="text"
               placeholder="Position"
               className="input input-xs"
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
             />
-            <button onClick={handleSubmit} className="btn btn-xs btn-info">
+            <button
+              onClick={handleSave}
+              className="btn btn-xs btn-info btn-soft"
+            >
               Save
             </button>
           </div>
@@ -44,14 +87,21 @@ export default function AdminSection() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Maliwan</td>
-                  <td>R.</td>
-                  <td>Software Dev</td>
-                  <td>
-                    <button className="btn btn-xs btn-soft btn-error ">Delete</button>
-                  </td>
-                </tr>
+                {userList.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.name}</td>
+                    <td>{user.lastname}</td>
+                    <td>{user.position}</td>
+                    <td>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="btn btn-xs btn-soft btn-error "
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
