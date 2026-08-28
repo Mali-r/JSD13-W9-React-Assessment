@@ -1,42 +1,63 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Home from "./01_Home";
-import dataUsers from "../mock-data/user";
+
+const API_URL = "https://6a915f3e7751d35ce47e7161.mockapi.io/members";
 
 export default function AdminSection() {
-  const [userList, setUserList] = useState(dataUsers);
+  const [userList, setUserList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [name, setName] = useState("");
   const [lastname, setLastname] = useState("");
   const [position, setPosition] = useState("");
 
+  // GET: load data on mount
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error("Fetch failed");
+        return res.json();
+      })
+      .then((data) => setUserList(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // POST: add a new user
   const handleSave = () => {
     if (!name || !lastname || !position) {
       alert("Please Fill in every field.");
       return;
-    } else {
-      alert(`Added: ${name} ${lastname}.`);
     }
 
-    // Add user
-    const newUser = {
-      id: Date.now().toString(), // set unique id for data
-      name,
-      lastname,
-      position,
-    };
-
-    // Add to dataUsers
-    setUserList([...userList, newUser]);
-
-    // reset form
-    setName("");
-    setLastname("");
-    setPosition("");
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, lastname, position }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Save failed");
+        return res.json();
+      })
+      .then((savedUser) => {
+        setUserList([...userList, savedUser]); // savedUser already has id from mockapi.io
+        setName("");
+        setLastname("");
+        setPosition("");
+      })
+      .catch((err) => alert(err.message));
   };
 
-  // Delete
+  // DELETE: remove a user
   const handleDelete = (id) => {
-    setUserList(userList.filter((user) => user.id != id));
+    fetch(`${API_URL}/${id}`, { method: "DELETE" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Delete failed");
+        setUserList(userList.filter((user) => user.id !== id));
+      })
+      .catch((err) => alert(err.message));
   };
 
   return (
@@ -75,37 +96,43 @@ export default function AdminSection() {
             </button>
           </div>
         </div>
-        <div className="flex justify-center">
-          <div className="overflow-x-auto h-96 w-[80%]">
-            <table className="table table-xs table-pin-row text-center">
-              <thead>
-                <tr>
-                  <td>Name</td>
-                  <td>Last Name</td>
-                  <td>Position</td>
-                  <td>Action</td>
-                </tr>
-              </thead>
-              <tbody>
-                {userList.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.name}</td>
-                    <td>{user.lastname}</td>
-                    <td>{user.position}</td>
-                    <td>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="btn btn-xs btn-soft btn-error "
-                      >
-                        Delete
-                      </button>
-                    </td>
+
+        {loading && <p className="text-center my-4">Loading...</p>}
+        {error && <p className="text-center my-4 text-error">Error: {error}</p>}
+
+        {!loading && !error && (
+          <div className="flex justify-center">
+            <div className="overflow-x-auto h-96 w-[80%]">
+              <table className="table table-xs table-pin-row text-center">
+                <thead>
+                  <tr>
+                    <td>Name</td>
+                    <td>Last Name</td>
+                    <td>Position</td>
+                    <td>Action</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {userList.map((user) => (
+                    <tr key={user.id}>
+                      <td>{user.name}</td>
+                      <td>{user.lastname}</td>
+                      <td>{user.position}</td>
+                      <td>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="btn btn-xs btn-soft btn-error "
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
